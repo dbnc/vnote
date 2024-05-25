@@ -1,0 +1,53 @@
+vnote_backup_file_826537664 E:/Documents/vnote_notebooks/vnotebook/知识库/doris/数据导入.md
+# 数据导入
+## 本地文件导入
+### 总结：streamLoad 和 mysqlLoad同样都可导入本地文件，且文件类型几乎一致，二选一即可
+#### streamLoad
+[来源](https://doris.apache.org/zh-CN/docs/dev/data-operate/import/import-scenes/local-file-load)
+具体实例见[来源](https://doris.apache.org/zh-CN/docs/dev/get-starting/#创建数据表)
+##### 1. 创建表
+##### 2. ssh直接执行以下内容
+```ssh 
+ curl -u user:passwd -H "label:load_local_file_test" -T /path/to/local/demo.txt http://host:port/api/demo/load_local_file_test/_stream_load
+ curl  --location-trusted -u root: -T test.csv -H "column_separator:," http://127.0.0.1:8030/api/demo/example_tbl/_stream_load
+```
+- user:passwd 为在 Doris 中创建的用户。初始用户为 admin / root，密码初始状态下为空。
+- host:port 为 BE 的 HTTP 协议端口，默认是 8040，可以在 Doris 集群 WEB UI页面查看。
+- label: 可以在 Header 中指定 Label 唯一标识这个导入任务。
+- -H 数据分割格式
+##### 3. 等待导入
+##### 注意：
+###### 只能导入本地文件
+###### 大小建议1~2G
+#### MysqlLoad
+[来源](https://doris.apache.org/zh-CN/docs/dev/data-operate/import/import-scenes/local-file-load#mysql-load)
+##### 创建表
+```sql
+CREATE TABLE IF NOT EXISTS load_local_file_test
+(
+id INT,
+age TINYINT,
+name VARCHAR(50)
+)
+unique key(id)
+DISTRIBUTED BY HASH(id) BUCKETS 3;
+```
+##### mysql客户端下执行
+```sql
+LOAD DATA
+LOCAL
+INFILE '/path/to/local/demo.txt'
+INTO TABLE demo.load_local_file_test
+```
+##### 等待导入结果
+##### demo.txt示例
+```txt
+3||张三||22||北京||2012-09-19 00:00:00
+4||李明||32||\N||2017-05-12 00:00:00
+5||孙权||12||广州||\N
+```
+其中每一行即为一行数据，\N为空值
+## 同步文件数据，同 连接.md
+详细见![连接](连接.md)
+[来源](https://doris.apache.org/zh-CN/docs/dev/data-operate/import/import-scenes/external-table-load#创建外部表)
+
